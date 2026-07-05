@@ -4,8 +4,8 @@
 
 **See exactly where your Claude Code tokens (and money) went.**
 
-[![npm version](https://img.shields.io/npm/v/agentburn.svg)](https://www.npmjs.com/package/agentburn)
-[![CI](https://github.com/anthropics/agentburn/actions/workflows/ci.yml/badge.svg)](https://github.com/anthropics/agentburn/actions)
+[![npm version](https://img.shields.io/npm/v/agentburn-cli.svg)](https://www.npmjs.com/package/agentburn-cli)
+[![CI](https://github.com/Saloni0106/agentburn/actions/workflows/ci.yml/badge.svg)](https://github.com/Saloni0106/agentburn/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
 

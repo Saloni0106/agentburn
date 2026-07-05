@@ -32,6 +32,7 @@ interface RawToolUseBlock {
 }
 
 interface RawMessage {
+  id?: unknown;
   role?: unknown;
   content?: unknown;
   model?: unknown;
@@ -91,10 +92,10 @@ export interface Session {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function safeNum(v: unknown): number {
-  if (typeof v === "number" && isFinite(v)) return Math.round(v);
+  if (typeof v === "number" && isFinite(v)) return Math.max(0, Math.round(v));
   if (typeof v === "string") {
     const n = Number(v);
-    if (isFinite(n)) return Math.round(n);
+    if (isFinite(n)) return Math.max(0, Math.round(n));
   }
   return 0;
 }
@@ -219,6 +220,10 @@ export function parseSessionFile(filePath: string): Session {
   const lines = raw.split("\n");
   let turnIndex = 0;
   let cumulativeInput = 0;
+  // Claude Code may write multiple JSONL lines for the same API message
+  // (one per content block), each repeating the same `message.id` and usage.
+  // Count usage only once per message id to avoid double-counting tokens.
+  const turnByMessageId = new Map<string, Turn>();
 
   for (const line of lines) {
     const trimmed = line.trim();
@@ -271,6 +276,17 @@ export function parseSessionFile(filePath: string): Session {
       usage.cacheCreationInputTokens +
       usage.cacheReadInputTokens;
 
+    // Duplicate line for a message we've already counted:
+    // merge its tool calls into the existing turn and skip usage accumulation.
+    const messageId = typeof msgObj.id === "string" ? msgObj.id : "";
+    if (messageId && turnByMessageId.has(messageId)) {
+      const existingTurn = turnByMessageId.get(messageId)!;
+      const extraToolCalls = parseToolCalls(msgObj.content, 0);
+      existingTurn.toolCalls.push(...extraToolCalls);
+      if (ts) existingTurn.timestamp = existingTurn.timestamp ?? ts;
+      continue;
+    }
+
     const toolCalls = parseToolCalls(msgObj.content, totalTurnTokens);
 
     cumulativeInput += usage.inputTokens;
@@ -286,6 +302,7 @@ export function parseSessionFile(filePath: string): Session {
     };
 
     session.turns.push(turn);
+    if (messageId) turnByMessageId.set(messageId, turn);
 
     // Accumulate totals
     session.totalUsage.inputTokens += usage.inputTokens;
@@ -319,26 +336,40 @@ export function findSessionFiles(dir: string): string[] {
 }
 
 /**
+ * Convert a working directory path to the slug Claude Code uses for
+ * ~/.claude/projects/ directory names (non-alphanumeric chars become "-").
+ * Example: /home/user/my.app → -home-user-my-app
+ */
+export function cwdToSlug(cwd: string): string {
+  return cwd.replace(/[^a-zA-Z0-9]/g, "-");
+}
+
+/**
  * Find the project transcript directory for the current working directory.
  * Claude Code maps cwd → a slug under ~/.claude/projects/
  */
-export function findProjectDir(cwd: string = process.cwd()): string | null {
-  const claudeBase = join(homedir(), ".claude", "projects");
+export function findProjectDir(
+  cwd: string = process.cwd(),
+  base: string = join(homedir(), ".claude", "projects")
+): string | null {
   try {
-    const entries = readdirSync(claudeBase);
-    // Prefer an exact slug match, then partial
-    const cwdSlug = cwd.replace(/[/\\:]/g, "-").replace(/^-+/, "");
+    const entries = readdirSync(base);
+    const cwdSlug = cwdToSlug(cwd);
 
-    // Try to find a directory whose name matches or contains the cwd slug
+    // 1. Exact slug match
     const exact = entries.find((e) => e === cwdSlug);
-    if (exact) return join(claudeBase, exact);
+    if (exact) return join(base, exact);
 
-    // Fallback: find directory whose name contains the last path segment
+    // 2. Suffix match on the slugified last path segment
+    //    (handles differing mount points / home prefixes)
     const lastSegment = cwd.split(/[/\\]/).filter(Boolean).pop() ?? "";
-    const partial = entries.find(
-      (e) => e.includes(lastSegment) && lastSegment.length > 2
-    );
-    if (partial) return join(claudeBase, partial);
+    const segSlug = cwdToSlug(lastSegment);
+    if (segSlug.length > 2) {
+      const suffixMatches = entries
+        .filter((e) => e.endsWith(`-${segSlug}`) || e === segSlug)
+        .sort((a, b) => b.length - a.length);
+      if (suffixMatches.length > 0) return join(base, suffixMatches[0]);
+    }
 
     return null;
   } catch {

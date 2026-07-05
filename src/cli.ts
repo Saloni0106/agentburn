@@ -24,7 +24,12 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 
-import { parseSessionFile, parseAllSessions, findSessionFiles } from "./parser.js";
+import {
+  parseSessionFile,
+  parseAllSessions,
+  findSessionFiles,
+  findProjectDir,
+} from "./parser.js";
 import { analyzeSession } from "./analyze.js";
 import {
   renderSessionReport,
@@ -33,7 +38,7 @@ import {
   toJsonReport,
   type AllProjectEntry,
 } from "./report.js";
-import { renderDoctorReport } from "./doctor.js";
+import { renderDoctorReport, generateRecommendations } from "./doctor.js";
 import { getPricing } from "./pricing.js";
 
 // ─── Package version ─────────────────────────────────────────────────────────
@@ -99,33 +104,46 @@ function parseArgs(argv: string[]): ParsedArgs {
         break;
       case "--dir": {
         i++;
-        if (i < args.length) result.dir = args[i];
+        if (i >= args.length) {
+          fail(`Missing value for --dir. Usage: agentburn --dir <path>`);
+        }
+        result.dir = args[i];
         break;
       }
       case "--price-in": {
         i++;
-        if (i < args.length) {
-          const v = parseFloat(args[i]);
-          if (!isNaN(v)) result.priceIn = v;
+        const v = i < args.length ? parseFloat(args[i]) : NaN;
+        if (isNaN(v) || v < 0) {
+          fail(`Invalid value for --price-in. Expected a non-negative number (USD per million tokens).`);
         }
+        result.priceIn = v;
         break;
       }
       case "--price-out": {
         i++;
-        if (i < args.length) {
-          const v = parseFloat(args[i]);
-          if (!isNaN(v)) result.priceOut = v;
+        const v = i < args.length ? parseFloat(args[i]) : NaN;
+        if (isNaN(v) || v < 0) {
+          fail(`Invalid value for --price-out. Expected a non-negative number (USD per million tokens).`);
         }
+        result.priceOut = v;
         break;
       }
       default:
-        // Unknown arg — ignore
-        break;
+        fail(
+          arg.startsWith("-")
+            ? `Unknown option: ${arg}. Run \`agentburn --help\` for usage.`
+            : `Unknown command: ${arg}. Valid commands: sessions, all, doctor. Run \`agentburn --help\` for usage.`
+        );
     }
     i++;
   }
 
   return result;
+}
+
+function fail(message: string): never {
+  console.error(`agentburn: ${message}`);
+  process.exit(1);
 }
 
 // ─── Directory resolution ─────────────────────────────────────────────────────
@@ -142,22 +160,14 @@ function findCurrentProjectDir(overrideDir: string | null): string | null {
 
   const cwd = process.cwd();
 
+  // Proper slug matching (exact, then suffix on last path segment)
+  const matched = findProjectDir(cwd, base);
+  if (matched) return matched;
+
+  // Fallback: most recently modified project directory.
+  // Warn loudly — this may not be the project you're standing in.
   try {
     const entries = readdirSync(base);
-    // Try to find a directory name that reflects the current working dir
-    const lastPart = cwd.split(/[/\\]/).filter(Boolean).pop() ?? "";
-
-    // Sort by specificity: prefer longer matching names
-    const matches = entries
-      .filter((e) => {
-        const eLower = e.toLowerCase().replace(/-/g, "/");
-        return eLower.includes(lastPart.toLowerCase()) && lastPart.length > 2;
-      })
-      .sort((a, b) => b.length - a.length);
-
-    if (matches.length > 0) return join(base, matches[0]);
-
-    // Fallback: pick the directory most recently modified
     const withStats = entries
       .map((e) => {
         const full = join(base, e);
@@ -171,7 +181,14 @@ function findCurrentProjectDir(overrideDir: string | null): string | null {
       .filter((x): x is NonNullable<typeof x> => x !== null && x.isDir)
       .sort((a, b) => b.mtime - a.mtime);
 
-    return withStats.length > 0 ? join(base, withStats[0].name) : null;
+    if (withStats.length === 0) return null;
+
+    console.error(
+      `agentburn: warning: no Claude Code project matched the current directory.\n` +
+      `  Falling back to the most recently active project: ${withStats[0].name}\n` +
+      `  Use --dir <path> to point at a specific project.`
+    );
+    return join(base, withStats[0].name);
   } catch {
     return null;
   }
@@ -352,7 +369,6 @@ async function cmdDoctor(args: ParsedArgs): Promise<void> {
   const analyses = sessions.map((s) => analyzeSession(s));
 
   if (args.json) {
-    const { generateRecommendations } = await import("./doctor.js");
     const out = analyses.map((a) => ({
       sessionId: a.session.sessionId,
       recommendations: generateRecommendations(a, pricing),

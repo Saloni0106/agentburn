@@ -33,31 +33,49 @@ export const PRICING_TABLE: Record<string, ModelPricing> = {
     cacheWritePerMTok: 18.75,
     cacheReadPerMTok: 1.5,
   },
-  // Claude 3.7 family
-  "claude-sonnet-3-7": {
-    inputPerMTok: 3.0,
-    outputPerMTok: 15.0,
-    cacheWritePerMTok: 3.75,
-    cacheReadPerMTok: 0.3,
+  "claude-haiku-4-5": {
+    inputPerMTok: 1.0,
+    outputPerMTok: 5.0,
+    cacheWritePerMTok: 1.25,
+    cacheReadPerMTok: 0.1,
   },
-  // Claude 3.5 family
-  "claude-sonnet-3-5": {
-    inputPerMTok: 3.0,
-    outputPerMTok: 15.0,
-    cacheWritePerMTok: 3.75,
-    cacheReadPerMTok: 0.3,
-  },
-  "claude-haiku-3-5": {
-    inputPerMTok: 0.8,
-    outputPerMTok: 4.0,
-    cacheWritePerMTok: 1.0,
-    cacheReadPerMTok: 0.08,
-  },
-  "claude-opus-3-5": {
+  "claude-opus-4-1": {
     inputPerMTok: 15.0,
     outputPerMTok: 75.0,
     cacheWritePerMTok: 18.75,
     cacheReadPerMTok: 1.5,
+  },
+  "claude-opus-4": {
+    inputPerMTok: 15.0,
+    outputPerMTok: 75.0,
+    cacheWritePerMTok: 18.75,
+    cacheReadPerMTok: 1.5,
+  },
+  "claude-sonnet-4": {
+    inputPerMTok: 3.0,
+    outputPerMTok: 15.0,
+    cacheWritePerMTok: 3.75,
+    cacheReadPerMTok: 0.3,
+  },
+  // Claude 3.7 family (real model IDs look like claude-3-7-sonnet-20250219)
+  "claude-3-7-sonnet": {
+    inputPerMTok: 3.0,
+    outputPerMTok: 15.0,
+    cacheWritePerMTok: 3.75,
+    cacheReadPerMTok: 0.3,
+  },
+  // Claude 3.5 family (real model IDs look like claude-3-5-sonnet-20241022)
+  "claude-3-5-sonnet": {
+    inputPerMTok: 3.0,
+    outputPerMTok: 15.0,
+    cacheWritePerMTok: 3.75,
+    cacheReadPerMTok: 0.3,
+  },
+  "claude-3-5-haiku": {
+    inputPerMTok: 0.8,
+    outputPerMTok: 4.0,
+    cacheWritePerMTok: 1.0,
+    cacheReadPerMTok: 0.08,
   },
   // Claude 3 family
   "claude-3-opus": {

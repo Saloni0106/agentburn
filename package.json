@@ -30,7 +30,7 @@
     "cli",
     "anthropic"
   ],
-  "author": "",
+  "author": "Saloni0106",
   "license": "MIT",
   "dependencies": {
     "cli-table3": "^0.6.5",
