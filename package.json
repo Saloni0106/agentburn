@@ -47,10 +47,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/anthropics/agentburn.git"
+    "url": "git+https://github.com/Saloni0106/agentburn.git"
   },
   "bugs": {
-    "url": "https://github.com/anthropics/agentburn/issues"
+    "url": "https://github.com/Saloni0106/agentburn/issues"
   },
-  "homepage": "https://github.com/anthropics/agentburn#readme"
+  "homepage": "https://github.com/Saloni0106/agentburn#readme"
 }
