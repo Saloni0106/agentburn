@@ -295,6 +295,10 @@ Make sure you're running inside a project directory that has Claude Code history
 
 ---
 
+## Support the project
+
+If agentburn helped you understand (or lower) your Claude Code bill, the best way to support it is to **[star the repo on GitHub](https://github.com/Saloni0106/agentburn)** — it helps other developers discover the tool.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and PRs are welcome, especially for supporting other agent CLIs.
