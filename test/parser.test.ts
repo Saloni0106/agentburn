@@ -100,6 +100,33 @@ describe("parseSessionFile", () => {
   });
 });
 
+describe("duplicate message id handling", () => {
+  it("counts usage only once for lines sharing the same message id", () => {
+    const session = parseSessionFile(join(FIXTURES, "session-duplicate-ids.jsonl"));
+    // Two lines share message id msg-api-777 (1000 in / 200 out each) —
+    // usage must be counted once: 1000 + 1500 input, 200 + 100 output.
+    assert.equal(session.totalUsage.inputTokens, 2500);
+    assert.equal(session.totalUsage.outputTokens, 300);
+  });
+
+  it("merges tool calls from duplicate lines into a single turn", () => {
+    const session = parseSessionFile(join(FIXTURES, "session-duplicate-ids.jsonl"));
+    // user + assistant(dedup-merged) + assistant = 3 turns
+    assert.equal(session.turns.length, 3);
+    const mergedTurn = session.turns[1];
+    const toolNames = mergedTurn.toolCalls.map((t) => t.tool).sort();
+    assert.deepEqual(toolNames, ["Edit", "Read"]);
+  });
+
+  it("clamps negative token counts to zero", () => {
+    const session = parseSessionFile(join(FIXTURES, "session-edge-cases.jsonl"));
+    for (const turn of session.turns) {
+      assert.ok(turn.usage.inputTokens >= 0);
+      assert.ok(turn.usage.outputTokens >= 0);
+    }
+  });
+});
+
 describe("findSessionFiles", () => {
   it("finds JSONL files in the fixtures directory", () => {
     const files = findSessionFiles(FIXTURES);
