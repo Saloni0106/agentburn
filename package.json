@@ -1,13 +1,13 @@
 {
-  "name": "agentburn",
-  "version": "0.1.0",
+  "name": "@basantbhat/agentburn",
+  "version": "0.1.1",
   "description": "See exactly where your Claude Code tokens (and money) went.",
   "type": "module",
   "engines": {
     "node": ">=20"
   },
   "bin": {
-    "agentburn": "./dist/cli.js"
+    "agentburn": "dist/cli.js"
   },
   "main": "./dist/cli.js",
   "exports": {
