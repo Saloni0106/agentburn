@@ -12,7 +12,7 @@
 </div>
 
 ```
-$ npx @basantbhat/agentburn sessions
+$ npx agentburn-cli sessions
 
 ────────────────────────────────────────────────────────────────────────────────
   agentburn sessions
@@ -26,7 +26,7 @@ $ npx @basantbhat/agentburn sessions
 
 ────────────────────────────────────────────────────────────────────────────────
 
-$ npx @basantbhat/agentburn
+$ npx agentburn-cli
 
 ────────────────────────────────────────────────────────────────────────────────
   agentburn  token burn report
@@ -66,7 +66,7 @@ $ npx @basantbhat/agentburn
 
 ────────────────────────────────────────────────────────────────────────────────
 
-$ npx @basantbhat/agentburn doctor
+$ npx agentburn-cli doctor
 
   ~  WARN  Repeatedly-read file
          File pool.ts was read 3 times (~32.0k tokens). Add to .claudeignore.
@@ -93,13 +93,13 @@ I built this because I blew through my weekly Claude Code quota in 2 days and ha
 No install needed:
 
 ```bash
-npx @basantbhat/agentburn
+npx agentburn-cli
 ```
 
 Or install globally:
 
 ```bash
-npm i -g @basantbhat/agentburn
+npm i -g agentburn-cli
 ```
 
 ---
@@ -226,20 +226,20 @@ Analyzes the most recent session for your current project directory.
 Every command supports `--json` for scripting:
 
 ```bash
-npx @basantbhat/agentburn --json | jq '.usage.inputTokens'
-npx @basantbhat/agentburn sessions --json | jq '.[0].cost.totalCost'
-npx @basantbhat/agentburn all --json > spend-report.json
-npx @basantbhat/agentburn doctor --json | jq '.[].recommendations[].severity'
+npx agentburn-cli --json | jq '.usage.inputTokens'
+npx agentburn-cli sessions --json | jq '.[0].cost.totalCost'
+npx agentburn-cli all --json > spend-report.json
+npx agentburn-cli doctor --json | jq '.[].recommendations[].severity'
 ```
 
 ### Other options
 
 ```bash
-npx @basantbhat/agentburn --dir ~/path/to/transcripts   # Override transcript directory
-npx @basantbhat/agentburn --price-in 3.0                # Override input price (USD/MTok)
-npx @basantbhat/agentburn --price-out 15.0              # Override output price (USD/MTok)
-npx @basantbhat/agentburn --version                     # Show version
-npx @basantbhat/agentburn --help                        # Show help
+npx agentburn-cli --dir ~/path/to/transcripts   # Override transcript directory
+npx agentburn-cli --price-in 3.0                # Override input price (USD/MTok)
+npx agentburn-cli --price-out 15.0              # Override output price (USD/MTok)
+npx agentburn-cli --version                     # Show version
+npx agentburn-cli --help                        # Show help
 ```
 
 ---

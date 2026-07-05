@@ -1,6 +1,6 @@
 {
-  "name": "@basantbhat/agentburn",
-  "version": "0.1.1",
+  "name": "agentburn-cli",
+  "version": "0.1.0",
   "description": "See exactly where your Claude Code tokens (and money) went.",
   "type": "module",
   "engines": {
